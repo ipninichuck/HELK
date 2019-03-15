@@ -6,16 +6,44 @@
 # Author: Roberto Rodriguez (@Cyb3rWard0g)
 # License: GPL-3.0
 
-# *********** Looking for ES ***************
-if [[ ! -z "$ES_JAVA_OPTS" ]]; then
-  echo "[HELK-DOCKER-INSTALLATION-INFO] Setting ES_JAVA_OPTS to $ES_JAVA_OPTS"
-else
-  # ****** Setup heap size and memory locking *****
-    ES_MEMORY=$(awk '/MemAvailable/{printf "%.f", $2/1024/1024/2}' /proc/meminfo)
-    echo "[HELK-DOCKER-INSTALLATION-INFO] Setting ES_HEAP_SIZE to ${ES_MEMORY}.."
-    export ES_JAVA_OPTS="-Xms${ES_MEMORY}g -Xmx${ES_MEMORY}g"
+# *********** Setting ES_JAVA_OPTS ***************
+if [[ -z "$ES_JAVA_OPTS" ]]; then
+		# Check using more accurate MB
+    AVAILABLE_MEMORY=$(awk '/MemAvailable/{printf "%.f", $2/1024}' /proc/meminfo)
+    if [ $AVAILABLE_MEMORY -ge 1000 -a $AVAILABLE_MEMORY -le 7999 ]; then
+      ES_MEMORY="1200m"
+    elif [ $AVAILABLE_MEMORY -ge 8000 -a $AVAILABLE_MEMORY -le 12999 ]; then
+      ES_MEMORY="2g"
+    elif [ $AVAILABLE_MEMORY -ge 13000 -a $AVAILABLE_MEMORY -le 16000 ]; then
+      ES_MEMORY="4g"
+    else
+      # Using GB instead of MB -- because plenty of RAM now
+      ES_MEMORY=$(( AVAILABLE_MEMORY / 1024 / 2 ))
+      if [ $ES_MEMORY -gt 31 ]; then
+        ES_MEMORY="31g"
+      else
+        ES_MEMORY="${ES_MEMORY}g"
+      fi
+    fi
+    export ES_JAVA_OPTS="-Xms${ES_MEMORY} -Xmx${ES_MEMORY} -XX:-UseConcMarkSweepGC -XX:-UseCMSInitiatingOccupancyOnly -XX:+UseG1GC"
+fi
+echo "[HELK-ES-DOCKER-INSTALLATION-INFO] Setting ES_JAVA_OPTS to $ES_JAVA_OPTS"
+
+# ******** Checking License Type ***************
+ENVIRONMENT_VARIABLES=$(env)
+XPACK_LICENSE_TYPE="$(echo $ENVIRONMENT_VARIABLES | grep -oE 'xpack.license.self_generated.type=[^ ]*' | sed s/.*=//)"
+
+# ******** Set Trial License Variables ***************
+if [[ $XPACK_LICENSE_TYPE == "trial" ]]; then
+  # *********** HELK ES Password ***************
+  if [[ -z "$ELASTIC_PASSWORD" ]]; then
+    export ELASTIC_PASSWORD=elasticpassword
+  fi
+  echo "[HELK-ES-DOCKER-INSTALLATION-INFO] Setting Elastic password to $ELASTIC_PASSWORD"
 fi
 
+echo "[HELK-ES-DOCKER-INSTALLATION-INFO] Setting Elastic license to $XPACK_LICENSE_TYPE"
+
 # ********** Starting Elasticsearch *****************
-echo "[HELK-DOCKER-INSTALLATION-INFO] Running docker-entrypoint script.."
+echo "[HELK-ES-DOCKER-INSTALLATION-INFO] Running docker-entrypoint script.."
 /usr/local/bin/docker-entrypoint.sh
