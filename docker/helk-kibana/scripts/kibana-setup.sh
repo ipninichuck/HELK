@@ -27,9 +27,9 @@ until curl -s $KIBANA_URL -o /dev/null; do
 done
 
 # *********** Waiting for Kibana server to be running ***************
-echo "[HELK-KIBANA-DOCKER-INSTALLATION-INFO] Checking to see if kibana server is running..."
-while [[ -z $(grep "Server running at http://$KIBANA" /usr/share/kibana/config/kibana_logs.log) ]]; do
-    sleep 1
+until $(curl --output /dev/null --silent --head --fail "$KIBANA_URL"); do
+  echo "waiting for kibana server.."
+  sleep 1
 done
 
 # ******** Set Trial License Variables ***************
@@ -39,7 +39,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
   echo "[HELK-KIBANA-DOCKER-INSTALLATION-INFO] Creating Kibana Index Patterns..."
   for index in ${!index_patterns[@]}; do
       echo "[++++++] creating kibana index ${index_patterns[${index}]}"
-      until curl -u $KIBANA_USER:$KIBANA_PASSWORD -X POST "$KIBANA_URL/api/saved_objects/index-pattern/${index_patterns[${index}]}" \
+      until curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$KIBANA_URL/api/saved_objects/index-pattern/${index_patterns[${index}]}" \
       -H "Content-Type: application/json" -H "kbn-xsrf: true" \
       -d"{\"attributes\":{\"title\":\"${index_patterns[${index}]}\",\"timeFieldName\":\"$TIME_FIELD\"}}"
       do
@@ -49,7 +49,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
 
   # *********** Making Sysmon the default index ***************
   echo "[HELK-KIBANA-DOCKER-INSTALLATION-INFO] Making Sysmon the default index..."
-  until curl -u $KIBANA_USER:$KIBANA_PASSWORD -X POST -H "Content-Type: application/json" -H "kbn-xsrf: true" \
+  until curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST -H "Content-Type: application/json" -H "kbn-xsrf: true" \
   "$KIBANA_URL/api/kibana/settings/defaultIndex" \
   -d"{\"value\":\"$DEFAULT_INDEX\"}"
   do
@@ -58,7 +58,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
 
   # *********** Set URL session store *********************
   echo "[HELK-KIBANA-DOCKER-INSTALLATION-INFO] Setting URL session store"
-  curl -u $KIBANA_USER:$KIBANA_PASSWORD -X POST "$KIBANA_URL/api/kibana/settings" -H 'Content-Type: application/json' -H 'kbn-xsrf: true' -d"
+  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$KIBANA_URL/api/kibana/settings" -H 'Content-Type: application/json' -H 'kbn-xsrf: true' -d"
   {
     \"changes\":{
         \"state:storeInSessionStorage\": true
@@ -71,7 +71,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
   for file in ${DIR}/*.json
   do
       echo "[++++++] Loading dashboard file ${file}"
-      until curl -u $KIBANA_USER:$KIBANA_PASSWORD -X POST "$KIBANA_URL/api/kibana/dashboards/import" -H 'kbn-xsrf: true' \
+      until curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$KIBANA_URL/api/kibana/dashboards/import" -H 'kbn-xsrf: true' \
       -H 'Content-type:application/json' -d @${file}
       do
         sleep 1
@@ -80,7 +80,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
 
   # *********** Creating HELK User *********************
   echo "[HELK-KIBANA-DOCKER-INSTALLATION-INFO] Setting HELK's user password to $KIBANA_UI_PASSWORD"
-  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_URL/_xpack/security/user/helk" -H 'Content-Type: application/json' -d"
+  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_HOSTS/_security/user/helk" -H 'Content-Type: application/json' -d"
   {
     \"password\" : \"$KIBANA_UI_PASSWORD\",
     \"roles\" : [ \"superuser\" ],
@@ -90,7 +90,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
   "
 
   # *********** Create Roles *******************
-  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_URL/_xpack/security/role/hunters" -H 'Content-Type: application/json' -d'
+  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_HOSTS/_security/role/hunters" -H 'Content-Type: application/json' -d'
   {
     "run_as": [],
     "cluster": [],
@@ -102,7 +102,7 @@ if [[ -n "$ELASTICSEARCH_PASSWORD" ]] && [[ -n "$ELASTICSEARCH_USERNAME" ]]; the
     ]
   }
   '
-  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_URL/_xpack/security/role/sysmon_hunters" -H 'Content-Type: application/json' -d'
+  curl -u $ELASTICSEARCH_USERNAME:$ELASTICSEARCH_PASSWORD -X POST "$ELASTICSEARCH_HOSTS/_xpack/security/role/sysmon_hunters" -H 'Content-Type: application/json' -d'
   {
     "run_as": [],
     "cluster": [],
@@ -160,3 +160,9 @@ else
       done
   done
 fi
+
+# ******** Modifiying Kibana Interface - HELK Logo **********
+#echo "[+++] Updating Kibana Logo..."
+#cp -i /usr/share/kibana/custom/HELK.png /usr/share/kibana/optimize/bundles/HELK.png
+#cp -i /usr/share/kibana/optimize/bundles/commons.style.css /usr/share/kibana/optimize/bundles/commons.style.css_backup
+#cp -i /usr/share/kibana/custom/commons.style.css /usr/share/kibana/optimize/bundles/commons.style.css

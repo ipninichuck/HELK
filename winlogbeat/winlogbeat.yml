@@ -1,5 +1,9 @@
-# For simplicity/brevity we have only included the enabled options necessary for sending windows logs to HELK
-# Please visit the Elastic documentation for the complete details of each option and full reference config
+# Winlogbeat 6, 7, and 8 are currently supported!
+# You can download the latest stable version of winlogbeat here:
+# https://www.elastic.co/downloads/beats/winlogbeat
+
+# For simplicity/brevity we have only included only the enabled options necessary for sending windows logs to HELK.
+# Please visit the Elastic documentation for the complete details of each option and full reference config:
 # https://www.elastic.co/guide/en/beats/winlogbeat/current/winlogbeat-reference-yml.html
 
 #======================= Winlogbeat specific options ==========================

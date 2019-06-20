@@ -1,16 +1,13 @@
 {
   "order": 10,
   "index_patterns": [ "logs-*" ],
-  "version": 2018080201,
+  "version": 2019060301,
   "settings": {
     "index": {
       "mapping": {
         "ignore_malformed": true,
-        "total_fields.limit": "1000",
+        "total_fields.limit": "3750",
         "coerce": true
-      },
-      "store": {
-        "type": "niofs"
       }
     },
     "refresh_interval": "30s",
@@ -18,53 +15,51 @@
     "number_of_shards": 1
   },
   "mappings": {
-    "doc": {
-      "dynamic": "true",
-      "dynamic_templates": [
-        {
-          "strings": {
-            "match_mapping_type": "string",
-            "mapping": {
-              "type": "text",
-              "norms": false,
-              "fields": {
-                "keyword": {
-                  "type": "keyword",
-                  "ignore_above": 1024
-                }
+    "dynamic": "true",
+    "dynamic_templates": [
+      {
+        "strings": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "text",
+            "norms": false,
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 1024
               }
             }
           }
         }
-      ],
-      "properties": {
-        "@timestamp": {
-          "type": "date"
-        },
-        "@version": {
-          "type": "keyword"
-        },
-        "log_ingest_timestamp": {
-          "type": "date"
-        },
-        "meta_log_tags": {
-          "type": "text",
-          "norms": false,
-          "fields": {
-            "keyword": {
-              "type": "keyword"
-            }
+      }
+    ],
+    "properties": {
+      "@timestamp": {
+        "type": "date"
+      },
+      "@version": {
+        "type": "keyword"
+      },
+      "log_ingest_timestamp": {
+        "type": "date"
+      },
+      "meta_log_tags": {
+        "type": "text",
+        "norms": false,
+        "fields": {
+          "keyword": {
+            "type": "keyword"
           }
-        },
-        "z_logstash_type": {
-          "enabled": false
-        },
-        "z_original_message": {
-          "enabled": false
-        },
-        "z_logstash_pipeline": {
-          "enabled": false
         }
+      },
+      "z_logstash_type": {
+        "enabled": false
+      },
+      "z_original_message": {
+        "enabled": false
+      },
+      "z_logstash_pipeline": {
+        "enabled": false
       }
     }
   }
