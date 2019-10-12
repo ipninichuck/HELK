@@ -1,23 +1,21 @@
 # HELK [Alpha]
 
-![version](https://img.shields.io/badge/version-0.1.4-blue.svg?maxAge=2592000)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub issues-closed](https://img.shields.io/github/issues-closed/Cyb3rward0g/HELK.svg)](https://GitHub.com/Cyb3rWard0g/HELK/issues?q=is%3Aissue+is%3Aclosed)
 [![Twitter](https://img.shields.io/twitter/follow/THE_HELK.svg?style=social&label=Follow)](https://twitter.com/THE_HELK)
 [![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 
 
-A Hunting ELK (Elasticsearch, Logstash, Kibana) with advanced analytic capabilities.
+The Hunting ELK or simply the HELK is one of the first open source hunt platforms with  advanced analytics capabilities such as SQL declarative language, graphing, structured streaming, and even machine learning via Jupyter notebooks and Apache Spark over an ELK stack. This project was developed primarily for research, but due to its flexible design and core components, it can be deployed in larger environments with the right configurations and scalable infrastructure.
 
 ![alt text](resources/images/HELK_Design.png "HELK Infrastructure")
 
 # Goals
 
-* Provide a free hunting platform to the community and share the basics of Threat Hunting.
-* Make sense of a large amount of event logs and add more context to suspicious events during hunting.
-* Expedite the time it takes to deploy an ELK stack.
-* Improve the testing of hunting use cases in an easier and more affordable way.
-* Enable Data Science via Apache Spark, GraphFrames & Jupyter Notebooks.
+* Provide an open source hunting platform to the community and share the basics of Threat Hunting.
+* Expedite the time it takes to deploy a hunt platform.
+* Improve the testing and development of hunting use cases in an easier and more affordable way.
+* Enable Data Science capabilities while analyzing data via Apache Spark, GraphFrames & Jupyter Notebooks.
 
 # Current Status: Alpha
 
@@ -94,13 +92,9 @@ root@ede2a2503030:/opt/helk/scripts#
 
 * Roberto Rodriguez [@Cyb3rWard0g](https://twitter.com/Cyb3rWard0g) [@THE_HELK](https://twitter.com/THE_HELK)
 
-# Contributors
+# Current Committers
 
-* Jose Luis Rodriguez [@Cyb3rPandaH](https://twitter.com/Cyb3rPandaH)
-* Robby Winchester [@robwinchester3](https://twitter.com/robwinchester3)
-* Jared Atkinson [@jaredatkinson](https://twitter.com/jaredcatkinson)
 * Nate Guagenti [@neu5ron](https://twitter.com/neu5ron)
-* Lee Christensen [@tifkin_](https://twitter.com/tifkin_)
 
 # Contributing
 

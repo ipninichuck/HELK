@@ -23,6 +23,10 @@ INSTALL_MINIMUM_MEMORY_NOTEBOOK=8000
 ## In GBs
 INSTALL_MINIMUM_DISK=25
 
+export DOCKER_CLIENT_TIMEOUT=300
+export COMPOSE_HTTP_TIMEOUT=300
+
+
 # *********** Check if user is root ***************
 if [[ $EUID -ne 0 ]]; then
    echo "$HELK_INFO_TAG YOU MUST BE ROOT TO RUN THIS SCRIPT!!!"
@@ -203,7 +207,8 @@ install_docker(){
 # ****** Installing docker compose from github.com/docker/compose ***********
 install_docker_compose(){
     echo "$HELK_INFO_TAG Installing docker-compose.."
-    curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose >> $LOGFILE 2>&1
+    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    curl -L https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose >> $LOGFILE 2>&1
     chmod +x /usr/local/bin/docker-compose >> $LOGFILE 2>&1
     ERROR=$?
     if [ $ERROR -ne 0 ]; then
@@ -458,7 +463,7 @@ prepare_helk(){
 get_jupyter_credentials(){
     if [[ ${HELK_BUILD} == "helk-kibana-notebook-analysis" ]] || [[ ${HELK_BUILD} == "helk-kibana-notebook-analysis-alert" ]]; then
         until (docker logs helk-jupyter 2>&1 | grep -q "The Jupyter Notebook is running at"); do sleep 5; done
-        jupyter_token="$(docker exec -ti helk-jupyter jupyter notebook list | grep "token" | sed 's/.*token=\([^ ]*\).*/\1/')" >> $LOGFILE 2>&1
+        jupyter_token="$(docker exec -i helk-jupyter jupyter notebook list | grep "token" | sed 's/.*token=\([^ ]*\).*/\1/')" >> $LOGFILE 2>&1
         echo "HELK JUPYTER CURRENT TOKEN: ${jupyter_token}"
     fi
 }
@@ -507,6 +512,8 @@ show_final_information(){
     echo " "
     echo "IT IS HUNTING SEASON!!!!!"
     echo " "
+    echo "You can stop all the HELK docker containers by running the following command:"
+    echo " [+] sudo docker-compose stop $COMPOSE_CONFIG"
     echo " "
 }
 
